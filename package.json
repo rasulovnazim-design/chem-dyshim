@@ -1,0 +1,20 @@
+{
+  "name": "chem-dyshim",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Чем дышим: качество воздуха и чистое отопление в Бишкеке",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "update": "node scripts/update.mjs",
+    "notify": "node scripts/notify.mjs",
+    "test": "node --test test/",
+    "preview": "node scripts/serve.mjs",
+    "geometry": "node scripts/build-geometry.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.5.0"
+  }
+}

@@ -1,0 +1,51 @@
+name: Обновление данных
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Запуски идут строго по одному: иначе два запуска могли бы отправить одно и то же в Telegram
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WAQI_TOKEN: ${{ secrets.WAQI_TOKEN }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      # Библиотека нужна только для сводки новостей, без ключа её не ставим
+      - name: Установить библиотеку для сводки
+        if: env.ANTHROPIC_API_KEY != ''
+        run: npm ci --omit=dev --no-audit --no-fund
+        continue-on-error: true
+
+      - name: Получить воздух и новости
+        run: node scripts/update.mjs
+
+      # Сначала фиксируем данные и то, что будет отправлено. Если этот шаг упадёт, в Telegram ничего не уйдёт
+      - name: Сохранить данные
+        run: scripts/commit-data.sh "Обновление данных"
+
+      - name: Отправить в Telegram
+        if: env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        run: node scripts/notify.mjs
+
+      - name: Сохранить статус отправки
+        if: env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        run: scripts/commit-data.sh "Статус рассылки"

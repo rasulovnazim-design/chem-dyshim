@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ru" data-title="nav.purifiers">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Очистители воздуха в Бишкеке. Чем дышим</title>
+<meta name="description" content="Честное сравнение очистителей воздуха, которые продаются в Бишкеке: CADR, площадь, фильтры, шум и цены. Калькулятор для комнаты и что не работает.">
+<meta name="theme-color" content="#5a5a55">
+<link rel="canonical" href="https://rasulovnazim-design.github.io/chem-dyshim/purifiers.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Чем дышим">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Очистители воздуха в Бишкеке. Чем дышим">
+<meta property="og:description" content="Честное сравнение очистителей воздуха, которые продаются в Бишкеке: CADR, площадь, фильтры, шум и цены. Калькулятор для комнаты и что не работает.">
+<meta property="og:url" content="https://rasulovnazim-design.github.io/chem-dyshim/purifiers.html">
+<meta property="og:image" content="https://rasulovnazim-design.github.io/chem-dyshim/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Чем дышим: качество воздуха в Бишкеке">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<div class="wrap">
+  <header class="masthead">
+    <div class="masthead__top">
+      <a class="logo" href="index.html" data-i18n="site.name">Чем дышим</a>
+      <button id="lang-toggle" class="lang" type="button" data-i18n="lang.switch">Кыргызча</button>
+    </div>
+    <p class="dateline"><span id="dateline-date">Бишкек</span> <a id="ear" class="ear" href="index.html" hidden></a></p>
+    <nav class="nav" aria-label="Разделы">
+      <a href="index.html" data-i18n="nav.home">Главная</a>
+      <a href="news.html" data-i18n="nav.news">Новости</a>
+      <a href="purifiers.html" data-i18n="nav.purifiers" aria-current="page">Очистители</a>
+      <a href="heating.html" data-i18n="nav.heating">Отопление</a>
+      <a href="about.html" data-i18n="nav.about">О проекте</a>
+    </nav>
+  </header>
+  <main id="main">
+    <article class="article">
+      <h1 class="page-title" data-i18n="pur.title">Очистители воздуха</h1>
+      <p class="only-ru" data-i18n="lang.only_ru"></p>
+      <p class="standfirst" data-i18n="pur.intro">Какие модели сейчас продаются в Бишкеке, сколько воздуха они реально могут очистить и во сколько обойдутся фильтры. Никто не платит нам за место в этой таблице.</p>
+      <p class="notice"><span data-i18n="pur.price_warning">Цены ориентировочно, проверьте в магазине.</span> <span id="checked-on"></span></p>
+
+      <h2>Коротко</h2>
+      <ul>
+        <li><strong>Комната до 30 м²:</strong> <a href="#xiaomi-4-lite">Xiaomi 4 Lite</a>. Около 11 000 сом, есть в наличии в трёх магазинах, CADR 360 м³/ч опубликован самой Xiaomi, сменный фильтр продаётся в Бишкеке за 3 200 сом.</li>
+        <li><strong>Комната до 40 м²:</strong> <a href="#xiaomi-4-pro">Xiaomi 4 Pro</a>. Около 17 500 сом, CADR 500 м³/ч от Xiaomi. Но Gadget.kg отмечает её как снятую с производства, поэтому заранее думайте о фильтрах.</li>
+        <li><strong>Не покупайте прибор без CADR</strong>, если можно выбрать прибор с ним. Без этой цифры нельзя понять, хватит ли его на вашу комнату.</li>
+      </ul>
+      <p>Это вывод из того, что мы смогли проверить, а не результат испытаний. Независимых замеров CADR этих моделей мы не нашли.</p>
+
+      <div class="calc">
+        <h3 data-i18n="pur.calc_title">Какой CADR нужен вашей комнате</h3>
+        <div class="field-row">
+          <label class="field"><span data-i18n="pur.calc_area">Площадь комнаты, м²</span>
+            <input id="room-area" type="number" inputmode="decimal" min="1" max="500" value="20"></label>
+          <label class="field"><span data-i18n="pur.calc_height">Высота потолка, м</span>
+            <input id="room-height" type="number" inputmode="decimal" min="1.5" max="6" step="0.1" value="2.7"></label>
+        </div>
+        <div id="room-result" class="calc__result" aria-live="polite"></div>
+      </div>
+
+      <h2 data-i18n="pur.compare_title">Сравнение</h2>
+      <p class="scroll-hint" data-i18n="pur.scroll_hint">Таблицу можно двигать пальцем вправо. От дешёвых к дорогим.</p>
+      <noscript><p class="notice" data-i18n="noscript">Для показаний воздуха нужен JavaScript. Остальные разделы сайта можно читать и без него.</p></noscript>
+      <div id="compare" class="table-scroll" tabindex="0" aria-label="Сравнительная таблица очистителей"></div>
+      <p class="source-note"><span data-i18n="pur.footnote_seller">* Цифра со страницы продавца, производитель её не подтверждает.</span> <span data-i18n="pur.footnote_filter">† Возможно, цена одного из двух фильтров.</span> <span data-i18n="pur.footnote_calc">Наш расчёт: 5 смен воздуха в час при потолке 2,4 м, это около 12 м³/ч на квадратный метр.</span></p>
+
+      <h2>Как выбрать</h2>
+      <h3>Смотрите на CADR, а не на площадь с упаковки</h3>
+      <p>CADR показывает, сколько чистого воздуха прибор даёт за час. Площадь на упаковке считают как угодно: например, Xiaomi India для одной из моделей указывает площадь, исходя всего из двух смен воздуха в час. Для сравнения, <a href="https://www.cdc.gov/niosh/ventilation/prevention/Aim-for-5.html" rel="noopener">CDC</a> и <a href="https://healthybuildings.hsph.harvard.edu/portable-air-cleaners-selection-and-application-considerations-for-covid-19-risk-reduction" rel="noopener">Гарвард</a> советуют ориентироваться на пять смен (их советы написаны о вирусах, но расчёт тот же). <a href="https://ww2.arb.ca.gov/resources/fact-sheets/air-cleaning-devices-home" rel="noopener">Калифорнийский CARB</a> считает минимумом две-три смены. Мы берём пять, потому что зимний смог в Бишкеке тяжёлый.</p>
+      <p>Простое правило: <strong>CADR в м³/ч не меньше площади комнаты, умноженной на 12</strong>. Это наш пересчёт в метры правила <a href="https://www.epa.gov/indoor-air-quality-iaq/guide-air-cleaners-home" rel="noopener">EPA</a> и <a href="https://ahamverifide.org/?p=14" rel="noopener">AHAM</a> для потолка 2,4 м. Если потолок выше, берите больше: калькулятор выше это учитывает.</p>
+      <h3>Берите с запасом: CADR указан для максимальной скорости</h3>
+      <p>На максимуме прибор шумит: у серии Xiaomi 4 это 61–65 дБ, у Mijia 6 Max 68 дБ. А тихие 30–33 дБ, которые пишут на ценниках, относятся к ночному режиму, где воздуха проходит намного меньше. <a href="https://impact.ornl.gov/en/publications/a-systematic-review-and-meta-analysis-of-field-studies-of-portabl/" rel="noopener">Обзор полевых исследований</a> показал: из-за шума, сквозняка и расходов на электричество люди часто держат приборы на низкой скорости или выключают, и пользы становится меньше. Прибор с запасом можно оставить на средней скорости.</p>
+      <h3>Считайте фильтры сразу</h3>
+      <p>Фильтры для этих моделей стоят от 3 200 до 6 400 сом, а срок замены от полугода до года. Это заявления производителей и продавцов для неуказанных условий. В сильный смог фильтр может отработать меньше, но замеров для Бишкека мы не нашли. Прежде чем покупать, убедитесь, что сменный фильтр вообще продаётся: у нескольких моделей из таблицы мы его не нашли.</p>
+      <h3>Китайская или европейская версия</h3>
+      <p>Многие приборы в Бишкеке это версии для Китая. Продавцы предупреждают о переходнике для вилки и о том, что в приложении Mi Home нужно выбрать регион Китай. Европейская версия 4 Lite дороже примерно на 3 000 сом. Гарантию и сертификацию мы не проверяли: спросите о них в магазине.</p>
+      <h3>Чего ждать на самом деле</h3>
+      <p>Прибор снижает количество частиц, но не делает воздух идеальным. По <a href="https://impact.ornl.gov/en/publications/a-systematic-review-and-meta-analysis-of-field-studies-of-portabl/" rel="noopener">обзору 83 работ</a> PM2.5 в помещениях падал в среднем на 49%. В <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11014421/" rel="noopener">исследовании домов в Нью-Джерси</a> снижение было около 79% в комнате с прибором и 58% в других комнатах. Поэтому ставьте прибор туда, где вы проводите больше всего времени, чаще всего в спальню, и закрывайте окна и дверь.</p>
+      <p>Если фильтр неплотно сидит в корпусе, воздух проходит мимо него: об этом предупреждают и <a href="https://ww2.arb.ca.gov/resources/fact-sheets/air-cleaning-devices-home" rel="noopener">CARB</a>, и EPA. Снимите упаковочную плёнку с нового фильтра и проверьте, что он встал на место.</p>
+
+      <h2>Что не работает</h2>
+      <h3>Озонаторы</h3>
+      <p>В Бишкеке их продают рядом с настоящими очистителями, за 2 000–4 000 сом. Не покупайте. Озон раздражает лёгкие и не убирает частицы, а именно они главная беда смога. <a href="https://www.epa.gov/indoor-air-quality-iaq/ozone-generators-are-sold-air-cleaners" rel="noopener">EPA</a> пишет, что ни одно федеральное ведомство США не одобрило их для помещений, где находятся люди. <a href="https://ww2.arb.ca.gov/resources/fact-sheets/air-cleaning-devices-home" rel="noopener">CARB</a> советует не пользоваться ими никогда.</p>
+      <h3>Ионизаторы вместо фильтра</h3>
+      <p>Ионы заставляют частицы прилипать к стенам, полу и столу, а не удаляют их. Как побочный продукт может выделяться озон (<a href="https://www.epa.gov/indoor-air-quality-iaq/what-are-ionizers-and-other-ozone-generating-air-cleaners" rel="noopener">EPA</a>). <a href="https://www.cochrane.org/evidence/CD002986_ionisers-chronic-asthma" rel="noopener">Кокрейновский обзор</a> по небольшим испытаниям не смог рекомендовать их при астме. Ионизация как дополнение есть у нескольких моделей из таблицы: очищает в них фильтр. Если в инструкции сказано, что ионы можно выключить, мы бы выключили.</p>
+      <h3>Ультрафиолет без фильтра</h3>
+      <p>УФ-лампа рассчитана на микробы и не задерживает PM2.5. Даже против бактерий и плесени домашние УФ-приборы эффективны ограниченно, и <a href="https://19january2017snapshot.epa.gov/indoor-air-quality-iaq/residential-air-cleaners-second-edition-summary-available-information_.html" rel="noopener">EPA советовало (архивная версия обзора)</a> применять их вместе с фильтром, а не вместо него.</p>
+      <h3>Маленькие и дешёвые приборы без CADR</h3>
+      <p><a href="https://ww2.arb.ca.gov/resources/fact-sheets/air-cleaning-devices-home" rel="noopener">CARB</a> отмечает, что маленькие настольные приборы очень мало влияют на воздух в комнате. Без вентилятора и настоящего фильтра воздух просто не проходит через очистку в нужном объёме. Низкая цена и отсутствие CADR значат, что проверить обещания нечем.</p>
+      <h3>Фотокаталитические ступени</h3>
+      <p>Они работают с газами, а не с PM2.5, и по данным <a href="https://19january2017snapshot.epa.gov/indoor-air-quality-iaq/residential-air-cleaners-second-edition-summary-available-information_.html" rel="noopener">архивного обзора EPA</a> сами могут давать раздражающие побочные вещества. Покупать прибор ради них нет смысла.</p>
+      <h3>Значки на упаковке</h3>
+      <p>Значок CARB говорит об озоне и электробезопасности, а не об эффективности: так пишет <a href="https://ww2.arb.ca.gov/list-carb-certified-air-cleaning-devices" rel="noopener">сам CARB</a>.</p>
+
+      <h2 id="details" data-i18n="pur.details_title">Подробно о каждой модели</h2>
+      <ul id="cards" class="pur-list"></ul>
+
+      <h2>Как мы проверяли</h2>
+      <p>Мы открыли страницы местных магазинов и выписали цену и отметку о наличии. Это Mi-Shop.kg, Gadget.kg, Softech.kg, Kupi.kg, Fishka.kg, Telefon.kg и Ballu.kg. Страницы могут отставать от реального склада, а Gadget.kg прямо просит уточнять наличие по телефону.</p>
+      <ul>
+        <li>9 из 12 моделей это Xiaomi и Mijia: такой оказалась выкладка в этих магазинах, это не наше предпочтение.</li>
+        <li>Kivano.kg, Lalafo.kg и xiaomi.kg закрыты от автоматической проверки. Там могут быть другие модели и цены, загляните туда сами.</li>
+        <li>На Sulpak.kg в разделе очистителей было 11 моделей, все без наличия.</li>
+        <li>Цифры CADR заявлены производителями или продавцами. По моделям Mijia страниц производителя мы не нашли, такие цифры отмечены звёздочкой.</li>
+      </ul>
+      <p>Заметили, что цена или наличие изменились? <a href="https://github.com/rasulovnazim-design/chem-dyshim/issues" rel="noopener">Напишите нам</a>.</p>
+    </article>
+  </main>
+  <footer class="footer">
+    <p data-i18n="footer.sources">Данные о воздухе: World Air Quality Index Project и Open-Meteo (CAMS). Карта районов: участники OpenStreetMap.</p>
+    <p><a href="https://aqicn.org/" rel="noopener">aqicn.org</a>, <a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a>, <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></p>
+    <p><a href="about.html#data" data-i18n="footer.more">Откуда данные и как считается AQI</a></p>
+  </footer>
+</div>
+<script type="module" src="assets/purifiers.js"></script>
+</body>
+</html>

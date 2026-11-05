@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru" data-title="nav.about">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>О проекте. Чем дышим</title>
+<meta name="description" content="Кто делает сайт «Чем дышим», откуда данные о воздухе Бишкека, что такое AQI и PM2.5 и как считается цифра на главной.">
+<meta name="theme-color" content="#5a5a55">
+<link rel="canonical" href="https://rasulovnazim-design.github.io/chem-dyshim/about.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Чем дышим">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="О проекте. Чем дышим">
+<meta property="og:description" content="Кто делает сайт «Чем дышим», откуда данные о воздухе Бишкека, что такое AQI и PM2.5 и как считается цифра на главной.">
+<meta property="og:url" content="https://rasulovnazim-design.github.io/chem-dyshim/about.html">
+<meta property="og:image" content="https://rasulovnazim-design.github.io/chem-dyshim/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Чем дышим: качество воздуха в Бишкеке">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<div class="wrap">
+  <header class="masthead">
+    <div class="masthead__top">
+      <a class="logo" href="index.html" data-i18n="site.name">Чем дышим</a>
+      <button id="lang-toggle" class="lang" type="button" data-i18n="lang.switch">Кыргызча</button>
+    </div>
+    <p class="dateline"><span id="dateline-date">Бишкек</span> <a id="ear" class="ear" href="index.html" hidden></a></p>
+    <nav class="nav" aria-label="Разделы">
+      <a href="index.html" data-i18n="nav.home">Главная</a>
+      <a href="news.html" data-i18n="nav.news">Новости</a>
+      <a href="purifiers.html" data-i18n="nav.purifiers">Очистители</a>
+      <a href="heating.html" data-i18n="nav.heating">Отопление</a>
+      <a href="about.html" data-i18n="nav.about" aria-current="page">О проекте</a>
+    </nav>
+  </header>
+  <main id="main">
+    <article class="article">
+      <h1 class="page-title" data-i18n="nav.about">О проекте</h1>
+      <p class="only-ru" data-i18n="lang.only_ru"></p>
+      <p class="standfirst">«Чем дышим» показывает, какой воздух сейчас в Бишкеке, что с этим делать сегодня и как со временем сделать дом чище и теплее.</p>
+
+      <h2>Кто делает</h2>
+      <p id="makers" hidden></p>
+      <p>Код сайта и все данные открыты: <a id="repo-link" href="https://github.com/rasulovnazim-design/chem-dyshim" rel="noopener">репозиторий на GitHub</a>. Сейчас ссылки на магазины не партнёрские: никто не платит нам за место в таблице. Если это изменится, мы сразу напишем об этом здесь и на странице очистителей.</p>
+
+      <h2 id="data">Откуда данные</h2>
+      <p><strong>Датчики.</strong> Каждые 30 минут сайт запрашивает все станции в границах Бишкека у <a href="https://aqicn.org/" rel="noopener">World Air Quality Index Project</a>. Станции принадлежат разным организациям и частным людям, их уровень точности различается.</p>
+      <p id="attributions" class="source-note" hidden></p>
+      <p><strong>Модель.</strong> Если датчики недоступны, показываем расчёт <a href="https://open-meteo.com/en/docs/air-quality-api" rel="noopener">Open-Meteo</a> на основе глобального прогноза CAMS (Copernicus Atmosphere Monitoring Service). Это не измерение. Сетка модели около 45 км, поэтому она не различает районы города, а AQI в ней считается по среднему за сутки. Вечерние пики смога она сглаживает и может сильно занижать. Такие значения всегда подписаны как расчёт модели.</p>
+      <p><strong>Новости.</strong> Ленты RSS изданий Kaktus.media, 24.kg, Economist.kg, АКИpress и Вести.kg. Отбор автоматический, по списку слов. Мы показываем заголовок и одно предложение, полный текст всегда у издания.</p>
+      <p><strong>Карта районов.</strong> Границы из <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a>, © участники OpenStreetMap, лицензия ODbL. Границы упрощены и подходят для обзора, а не для измерений. Мелкие анклавы районов на карте не показаны.</p>
+      <p><strong>Цены и тарифы.</strong> Проверены вручную, дата проверки указана на страницах <a href="purifiers.html">очистителей</a> и <a href="heating.html">отопления</a>.</p>
+
+      <h2>Что такое AQI и PM2.5</h2>
+      <p>AQI (Air Quality Index) переводит концентрацию загрязнителей в одну шкалу от 0 до 500. Мы используем шкалу Агентства по охране окружающей среды США: чем больше число, тем хуже воздух.</p>
+      <p>PM2.5 это частицы мельче 2,5 микрометра. Они проникают глубоко в лёгкие и в кровь, и именно они дают основной вред зимнего смога. PM10 это частицы крупнее, до 10 микрометров: пыль, зола. Всемирная организация здравоохранения советует, чтобы среднее за сутки PM2.5 не превышало 15 мкг/м³, а среднее за год 5 мкг/м³.</p>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>Уровень</th><th class="num">AQI</th><th class="num">PM2.5, мкг/м³</th></tr></thead>
+        <tbody>
+          <tr><td><span class="scale-swatch" style="background:#1B7A3D"></span>Хорошо</td><td class="num">0–50</td><td class="num">0–9</td></tr>
+          <tr><td><span class="scale-swatch" style="background:#8A6A00"></span>Умеренно</td><td class="num">51–100</td><td class="num">9,1–35,4</td></tr>
+          <tr><td><span class="scale-swatch" style="background:#B8520A"></span>Вредно для чувствительных</td><td class="num">101–150</td><td class="num">35,5–55,4</td></tr>
+          <tr><td><span class="scale-swatch" style="background:#B3261E"></span>Вредно</td><td class="num">151–200</td><td class="num">55,5–125,4</td></tr>
+          <tr><td><span class="scale-swatch" style="background:#6D2C91"></span>Очень вредно</td><td class="num">201–300</td><td class="num">125,5–225,4</td></tr>
+          <tr><td><span class="scale-swatch" style="background:#6B1426"></span>Опасно</td><td class="num">301 и выше</td><td class="num">от 225,5</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="source-note">Границы PM2.5 приведены по редакции EPA 2024 года: <a href="https://www.epa.gov/system/files/documents/2024-02/pm-naaqs-air-quality-index-fact-sheet.pdf" rel="noopener">справка EPA</a>. Рекомендации ВОЗ: <a href="https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health" rel="noopener">информационный бюллетень</a>.</p>
+
+      <h2>Как считается цифра на главной</h2>
+      <ul>
+        <li>Для города берём медиану по всем свежим датчикам, а не среднее: один сбойный датчик не меняет картину. Станция, молчащая больше шести часов, не участвует.</li>
+        <li>Каждый датчик относим к району, в границах которого он стоит, а если он за городом, то к ближайшему. Если в районе нет датчика, мы показываем «нет данных» и не угадываем.</li>
+        <li>WAQI отдаёт по загрязнителям не концентрацию, а индекс. Значения мкг/м³ у датчиков мы восстанавливаем обратным расчётом, поэтому они приблизительные и отмечены знаком ≈.</li>
+        <li>При загрузке страницы браузер отдельно запрашивает Open-Meteo. Свежие показания датчиков важнее этого расчёта: модель показывается крупно только когда датчики недоступны или молчат больше двух часов, и тогда об этом написано рядом с цифрой.</li>
+      </ul>
+
+      <h2>Рекомендации</h2>
+      <p>Советы на главной основаны на руководстве <a href="https://www.airnow.gov/aqi/aqi-basics/" rel="noopener">AirNow (EPA)</a> и материалах ВОЗ, сокращены и привязаны к уровню AQI. Это общая информация, а не медицинская консультация. Если вам плохо, обращайтесь к врачу.</p>
+
+      <h2>Как поддержать</h2>
+      <ul>
+        <li id="support-channel" hidden>Подпишитесь на <a id="support-channel-link" href="#" rel="noopener">канал в Telegram</a> и перешлите утренний пост в школьный или домовой чат.</li>
+        <li>Расскажите о сайте тем, кто выбирает отопление или очиститель.</li>
+        <li>Нашли ошибку, устаревшую цену или закрытый магазин? <a href="https://github.com/rasulovnazim-design/chem-dyshim/issues" rel="noopener">Напишите нам на GitHub</a>.</li>
+        <li id="support-link" hidden><a id="support-link-a" href="#" rel="noopener">Поддержать проект деньгами</a></li>
+      </ul>
+    </article>
+  </main>
+  <footer class="footer">
+    <p data-i18n="footer.sources">Данные о воздухе: World Air Quality Index Project и Open-Meteo (CAMS). Карта районов: участники OpenStreetMap.</p>
+    <p><a href="https://aqicn.org/" rel="noopener">aqicn.org</a>, <a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a>, <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a></p>
+    <p><a href="about.html#data" data-i18n="footer.more">Откуда данные и как считается AQI</a></p>
+  </footer>
+</div>
+<script type="module" src="assets/about.js"></script>
+</body>
+</html>
