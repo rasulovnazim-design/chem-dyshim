@@ -3,27 +3,34 @@ import { renderDayChart, renderWeekChart } from './charts.js';
 import { chooseReading } from './freshness.js';
 import { LEVELS, levelIndex, levelOf } from './levels.js';
 import { SITE } from '../config/site.js';
-import { DISTRICT_IDS, FALLBACK_POINTS } from '../config/sources.js';
-import { summarise } from '../scripts/lib/aqi.mjs';
+import { DISTRICT_IDS, FALLBACK_POINTS, MIN_COMMUNITY_SENSORS } from '../config/sources.js';
+import { comparableDistricts, districtSummaries, summarise } from '../scripts/lib/aqi.mjs';
 import { buildUrl, parseCurrent, parseHourly } from '../scripts/lib/openmeteo.mjs';
+import { boxUrl, refreshPoints, SOURCE as COMMUNITY } from '../scripts/lib/sensorcommunity.mjs';
 
 const CACHE_KEY = 'cd-last';
 const GROUPS = ['children', 'pregnant', 'elderly', 'sport', 'windows', 'masks'];
 const $ = (id) => document.getElementById(id);
 
-const state = { file: null, live: null, cached: null, liveHistory: null, reading: null, level: null };
+const state = { file: null, live: null, liveSensors: null, cached: null, liveHistory: null, reading: null, level: null };
 
 const capitalise = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function liveFromBody(body) {
   const points = parseCurrent(body, FALLBACK_POINTS);
   if (!points.length) return null;
-  const city = summarise(points, 'open-meteo');
-  const districts = Object.fromEntries(DISTRICT_IDS.map((id) => {
-    const own = points.filter((p) => p.district === id);
-    return [id, { ...(summarise(own, 'open-meteo') ?? { aqi: null }), neighbourhoods: own.map((p) => p.neighbourhood) }];
-  }));
-  return { city, districts };
+  return { city: summarise(points, 'open-meteo'), districts: districtSummaries(points, 'open-meteo') };
+}
+
+function liveSensorsFromBody(body, knownPoints) {
+  const points = refreshPoints(body, knownPoints);
+  if (!points.length) return null;
+  const districts = districtSummaries(points, COMMUNITY);
+  return {
+    city: points.length >= MIN_COMMUNITY_SENSORS ? summarise(points, COMMUNITY) : null,
+    districts,
+    comparable: comparableDistricts(districts),
+  };
 }
 
 function setText(id, text) {
@@ -43,10 +50,21 @@ function renderLead() {
     const ms = Date.parse(city.timestamp);
     setText('reading-time', capitalise(t('home.reading_time', { time: fmtClock(ms), date: fmtDay(ms) })));
     const fmtPm = (v) => (typeof v === 'number' ? String(Math.round(v)) : '?');
-    const estimated = reading.mode === 'sensors';
-    setText('reading-source', reading.mode === 'sensors' ? t('home.source_sensors', { n: city.stations }) : t('home.source_model'));
-    setText('reading-pm', t(estimated ? 'home.pm_estimated' : 'home.pm', { pm25: fmtPm(city.pm25), pm10: fmtPm(city.pm10) }));
-    setText('reading-check', reading.modelCheck ? t('home.model_check', { aqi: reading.modelCheck.aqi }) : '');
+    const hasPm = typeof city.pm25 === 'number' || typeof city.pm10 === 'number';
+    const sourceText = {
+      iqair: () => t('home.source_iqair'),
+      sensors: () => t('home.source_sensors', { n: city.stations }),
+      community: () => t('home.source_community', { n: city.stations }),
+      model: () => t('home.source_model'),
+    }[reading.mode];
+    setText('reading-source', sourceText?.() ?? '');
+    setText('reading-pm', hasPm ? t(reading.mode === 'sensors' ? 'home.pm_estimated' : 'home.pm', { pm25: fmtPm(city.pm25), pm10: fmtPm(city.pm10) }) : '');
+    const { stationCheck, modelCheck } = reading;
+    let check = '';
+    if (stationCheck && modelCheck) check = t('home.check_both', { sensors: stationCheck.aqi, model: modelCheck.aqi });
+    else if (stationCheck) check = t('home.check_sensors', { aqi: stationCheck.aqi });
+    else if (modelCheck) check = t('home.model_check', { aqi: modelCheck.aqi });
+    setText('reading-check', check);
     const key = LEVELS[levelIndex(city.aqi)].key;
     setText('tip', `${t('advice.children')}: ${t(`advice.children.${key}`)}`);
   } else {
@@ -94,7 +112,8 @@ function renderDistricts() {
     sub.textContent = [category, list].filter(Boolean).join('. ');
     sub.hidden = !sub.textContent;
   }
-  setText('map-note', reading.mode === 'none' ? '' : t(reading.comparable ? 'home.map_note_sensors' : 'home.map_note_model'));
+  const noteKey = { waqi: 'home.map_note_sensors', [COMMUNITY]: 'home.map_note_community', 'open-meteo': 'home.map_note_model' }[reading.districtsSource];
+  setText('map-note', noteKey ? t(noteKey) : '');
 }
 
 function renderCharts() {
@@ -102,7 +121,10 @@ function renderCharts() {
   const series = state.file?.history?.city?.length ? state.file.history.city : state.liveHistory ?? [];
   renderDayChart($('chart-day-body'), series, nowMs);
   const { hasModel } = renderWeekChart($('chart-week-body'), series, nowMs) ?? {};
-  setText('chart-note', hasModel ? t('home.chart_model_note') : '');
+  const notes = [];
+  if (hasModel) notes.push(t('home.chart_model_note'));
+  if (state.reading?.mode === 'iqair') notes.push(t('home.chart_iqair_note'));
+  setText('chart-note', notes.join(' '));
 }
 
 function renderAdvice() {
@@ -132,7 +154,7 @@ function renderAdvice() {
 }
 
 function render() {
-  state.reading = chooseReading({ file: state.file, live: state.live, cached: state.cached, nowMs: Date.now() });
+  state.reading = chooseReading({ file: state.file, live: state.live, liveSensors: state.liveSensors, cached: state.cached, nowMs: Date.now() });
   applyStrings();
   renderLead();
   renderSubscribe();
@@ -140,7 +162,8 @@ function render() {
   renderCharts();
   renderAdvice();
   if (state.reading.city && !state.reading.notice) {
-    store(CACHE_KEY, JSON.stringify({ city: state.reading.city, districts: state.reading.districts, comparable: state.reading.comparable }));
+    const { city, districts, districtsSource, comparable } = state.reading;
+    store(CACHE_KEY, JSON.stringify({ city, districts, districtsSource, comparable }));
   }
 }
 
@@ -155,7 +178,13 @@ async function start() {
   // Показываем данные файла сразу, как только они пришли, не дожидаясь второго запроса
   await fileLoad;
   if (state.file) render();
-  await liveLoad;
+
+  // Район и подпись каждого датчика известны из файла, поэтому без файла свежие показания не применить
+  const knownPoints = state.file?.points ?? [];
+  const sensorLoad = knownPoints.some((p) => p.source === COMMUNITY)
+    ? fetchJson(boxUrl()).then((body) => { state.liveSensors = liveSensorsFromBody(body, knownPoints); }).catch(() => { state.liveSensors = null; })
+    : Promise.resolve();
+  await Promise.all([liveLoad, sensorLoad]);
   render();
 
   // Файла нет: график строим из истории модели, чтобы страница не осталась пустой

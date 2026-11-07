@@ -1,6 +1,16 @@
 // Источники данных. Файл читают и скрипты, и браузер (FALLBACK_POINTS).
 
-// Границы поиска станций WAQI вокруг Бишкека
+// Город для API IQAir: названия как в адресе iqair.com/air-quality/kyrgyzstan/bishkek/bishkek
+export const IQAIR_CITY = { city: 'Bishkek', state: 'Bishkek', country: 'Kyrgyzstan' };
+
+// Датчики Sensor.Community, которым нельзя верить. Номер виден в data/aqi.json.
+// 35745 (Асанбай) круглые сутки показывает 470–990 мкг/м³, пока соседние показывают 2–20.
+export const SENSOR_EXCLUDE = [35745];
+
+// Меньше этого числа датчиков показатель для всего города не считается: слишком мало.
+export const MIN_COMMUNITY_SENSORS = 3;
+
+// Границы поиска станций и датчиков вокруг Бишкека
 export const BBOX = { south: 42.78, west: 74.45, north: 42.95, east: 74.72 };
 
 // Шесть точек для резервного источника Open-Meteo: по одной-две в каждом районе.

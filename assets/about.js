@@ -17,13 +17,13 @@ if (/^https?:\/\//.test(SITE.supportUrl)) {
   document.getElementById('support-link').hidden = false;
 }
 
-// WAQI требует указывать первоисточники станций
+// Если подключены станции WAQI, их условия требуют указывать первоисточники
 try {
   const air = await fetchJson(dataUrl('data/aqi.json'));
   const list = (air.attributions ?? []).filter((a) => /^https?:\/\//.test(a.url));
   if (list.length) {
     const box = document.getElementById('attributions');
-    box.append('Первоисточники данных станций: ');
+    box.append('Станции: World Air Quality Index Project и первоисточники: ');
     list.forEach((a, i) => {
       if (i) box.append(', ');
       const link = document.createElement('a');

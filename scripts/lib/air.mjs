@@ -1,12 +1,14 @@
 // Сборка data/aqi.json: выбор источника, районы, скользящая история за 7 дней.
-import { DISTRICT_IDS } from '../../config/sources.js';
-import { summarise } from './aqi.mjs';
+import { MIN_COMMUNITY_SENSORS } from '../../config/sources.js';
+import { comparableDistricts, districtSummaries, summarise } from './aqi.mjs';
 import { errorText } from './http.mjs';
+import { fetchIqair } from './iqair.mjs';
 import { fetchOpenMeteo } from './openmeteo.mjs';
+import { fetchSensorCommunity, SOURCE as COMMUNITY } from './sensorcommunity.mjs';
 import { fetchWaqi } from './waqi.mjs';
 
 const WEEK_S = 7 * 24 * 3600;
-const SOURCE_FLAG = { waqi: 's', 'open-meteo': 'm' };
+const SOURCE_FLAG = { waqi: 's', [COMMUNITY]: 's', 'open-meteo': 'm' };
 
 export function mergeSeries(series, entries, nowMs) {
   const cutoff = Math.floor(nowMs / 1000) - WEEK_S;
@@ -35,69 +37,79 @@ export function buildHistory(prev, { points, city, source, backfill, nowMs }) {
   return history;
 }
 
-export function districtSummaries(points, source, districts) {
-  const names = Object.fromEntries(districts.map((d) => [d.id, d.name]));
-  return Object.fromEntries(DISTRICT_IDS.map((id) => {
-    const own = points.filter((p) => p.district === id);
-    const summary = summarise(own, source);
-    return [id, {
-      name: names[id] ?? id,
-      ...(summary ?? { aqi: null, pm25: null, pm10: null, category: null, timestamp: null, source, stations: 0 }),
-      neighbourhoods: [...new Set(own.map((p) => p.neighbourhood).filter(Boolean))],
-    }];
-  }));
+/** Один источник: успех записывается в статус, сбой не мешает остальным. */
+async function attempt(status, name, okText, fn) {
+  try {
+    const value = await fn();
+    status[name] = okText(value);
+    return value;
+  } catch (err) {
+    status[name] = `ошибка: ${errorText(err)}`;
+    return null;
+  }
 }
 
-/** Собирает новый aqi.json. Не бросает исключений: при сбое всех источников возвращает прежние данные. */
-export async function updateAir({ prev, token, districts, places, nowMs, deps = {} }) {
-  const waqiFn = deps.fetchWaqi ?? fetchWaqi;
-  const meteoFn = deps.fetchOpenMeteo ?? fetchOpenMeteo;
+/**
+ * Собирает новый aqi.json. Не бросает исключений: при сбое всех источников возвращает прежние данные.
+ *
+ * Главная цифра: IQAir, затем медиана станций или датчиков, затем модель.
+ * Карта: станции WAQI, если подключены, затем датчики жителей, затем модель.
+ * История: станции или модель. IQAir в неё не попадает, его условия запрещают собирать данные в базу.
+ */
+export async function updateAir({ prev, token, iqairKey, districts, places, nowMs, deps = {} }) {
   const status = {};
+  const count = (r) => `ok: точек ${r.points.length}`;
+
+  let iqair = null;
+  if (iqairKey) {
+    iqair = await attempt(status, 'iqair', () => 'ok', () => (deps.fetchIqair ?? fetchIqair)({ key: iqairKey, nowMs }));
+  } else {
+    status.iqair = 'нет ключа';
+  }
 
   let waqi = null;
   if (token) {
-    try {
-      waqi = await waqiFn({ token, districts, places, nowMs });
-      status.waqi = `ok: станций ${waqi.points.length}`;
-    } catch (err) {
-      status.waqi = `ошибка: ${errorText(err)}`;
-    }
+    waqi = await attempt(status, 'waqi', count, () => (deps.fetchWaqi ?? fetchWaqi)({ token, districts, places, nowMs }));
   } else {
     status.waqi = 'нет токена';
   }
 
-  let meteo = null;
-  try {
-    meteo = await meteoFn({ nowMs });
-    status.open_meteo = 'ok';
-  } catch (err) {
-    status.open_meteo = `ошибка: ${errorText(err)}`;
-  }
+  const community = await attempt(status, 'sensor_community', count, () => (deps.fetchSensorCommunity ?? fetchSensorCommunity)({ districts, places, nowMs }));
+  const meteo = await attempt(status, 'open_meteo', () => 'ok', () => (deps.fetchOpenMeteo ?? fetchOpenMeteo)({ nowMs }));
+
+  const stations = waqi ?? community;
+  const stationSource = waqi ? 'waqi' : community ? COMMUNITY : null;
+  const enoughStations = stations && (waqi || stations.points.length >= MIN_COMMUNITY_SENSORS);
+  const stationCity = enoughStations ? summarise(stations.points, stationSource) : null;
+  const modelCity = meteo ? summarise(meteo.points, 'open-meteo') : null;
+  const city = iqair ?? stationCity ?? modelCity;
 
   const nowIso = new Date(nowMs).toISOString();
-  const active = waqi ?? meteo;
-  if (!active) {
+  if (!city) {
     return { ...(prev ?? { schema: 1, city: null, districts: null, points: [], history: { city: [], points: {} } }), status, last_attempt_at: nowIso };
   }
 
-  const source = waqi ? 'waqi' : 'open-meteo';
-  const city = summarise(active.points, source);
-  const withData = Object.values(districtSummaries(active.points, source, districts)).filter((d) => d.aqi !== null).length;
+  const mapPoints = stations?.points ?? meteo?.points ?? [];
+  const mapSource = stations ? stationSource : 'open-meteo';
+  const districtData = districtSummaries(mapPoints, mapSource, districts);
+  const chartCity = stationCity ?? modelCity;
   return {
     schema: 1,
     generated_at: nowIso,
     last_attempt_at: nowIso,
     status,
-    source,
-    // Сравнивать районы честно только по датчикам: модель их почти не различает
-    districts_comparable: source === 'waqi' && withData >= 2,
+    source: city.source,
     city,
-    model_check: meteo ? summarise(meteo.points, 'open-meteo') : null,
-    districts: districtSummaries(active.points, source, districts),
-    points: active.points,
+    station_check: stationCity,
+    model_check: modelCity,
+    districts: districtData,
+    districts_source: mapSource,
+    // Сравнивать районы честно только по реальным датчикам: модель их почти не различает
+    districts_comparable: Boolean(stations) && comparableDistricts(districtData),
+    points: mapPoints,
     attributions: waqi?.attributions ?? [],
     history: buildHistory(prev?.history, {
-      points: active.points, city, source, backfill: meteo?.history ?? null, nowMs,
+      points: mapPoints, city: chartCity, source: chartCity?.source, backfill: meteo?.history ?? null, nowMs,
     }),
   };
 }

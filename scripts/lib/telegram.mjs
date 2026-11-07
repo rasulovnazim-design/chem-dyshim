@@ -23,20 +23,31 @@ const fill = (template, vars) => template.replace(/\{(\w+)\}/g, (_, k) => vars[k
 const levelName = (i) => ru[`level.${LEVELS[i].key}`];
 const adviceLine = (group, i) => `${ru[`advice.${group}`]}: ${ru[`advice.${group}.${LEVELS[i].key}`]}`;
 
+export function sourceMark(air) {
+  if (air.source === 'open-meteo') return ` (${ru['tg.model_mark']})`;
+  if (air.source === 'sensor-community') return ` (${ru['tg.community_mark']})`;
+  return '';
+}
+
+// IQAir просит указывать его как источник
+const sourceLine = (air) => (air.source === 'iqair' ? [escapeHtml(ru['tg.source_iqair'])] : []);
+
 export function districtsLine(air) {
   if (!air.districts_comparable) return ru['tg.model_districts'];
   const list = Object.values(air.districts).filter((d) => typeof d.aqi === 'number').sort((a, b) => b.aqi - a.aqi);
   const worst = list[0];
   const best = list[list.length - 1];
   if (worst.aqi - best.aqi < 10) return ru['tg.districts_even'];
-  return fill(ru['tg.districts'], { worst: worst.name, worstAqi: worst.aqi, best: best.name, bestAqi: best.aqi });
+  const template = air.districts_source === 'sensor-community' ? 'tg.districts_raw' : 'tg.districts';
+  return fill(ru[template], { worst: worst.name, worstAqi: worst.aqi, best: best.name, bestAqi: best.aqi });
 }
 
 export function morningPost(air, siteUrl, nowMs) {
   const i = levelIndex(air.city.aqi);
   return [
     `${LEVELS[i].dot} <b>${escapeHtml(fill(ru['tg.morning_title'], { date: bishkekDateLong(nowMs) }))}</b>`,
-    `AQI ${air.city.aqi}: ${escapeHtml(levelName(i).toLowerCase())}${air.source === 'open-meteo' ? ` (${escapeHtml(ru['tg.model_mark'])})` : ''}`,
+    `AQI ${air.city.aqi}: ${escapeHtml(levelName(i).toLowerCase())}${escapeHtml(sourceMark(air))}`,
+    ...sourceLine(air),
     '',
     escapeHtml(districtsLine(air)),
     '',
@@ -53,7 +64,8 @@ export function alertPost(air, previousLevel, siteUrl) {
   return [
     `${LEVELS[i].dot} <b>${escapeHtml(fill(ru['tg.alert_title'], { level: levelName(i).toLowerCase() }))}</b>`,
     escapeHtml(fill(ru['tg.alert_body'], { aqi: air.city.aqi, time: clock, before: levelName(Math.max(previousLevel, 0)).toLowerCase() }))
-      + (air.source === 'open-meteo' ? ` (${escapeHtml(ru['tg.model_mark'])})` : ''),
+      + escapeHtml(sourceMark(air)),
+    ...sourceLine(air),
     '',
     escapeHtml(adviceLine('children', i)),
     escapeHtml(adviceLine('windows', i)),

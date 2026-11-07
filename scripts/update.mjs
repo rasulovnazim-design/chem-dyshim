@@ -45,7 +45,7 @@ const { places } = await readJson('config/neighbourhoods.json');
 
 // Воздух
 const prevAir = await readJson('data/aqi.json');
-const air = await step('воздух', () => updateAir({ prev: prevAir, token: process.env.WAQI_TOKEN, districts, places, nowMs }));
+const air = await step('воздух', () => updateAir({ prev: prevAir, token: process.env.WAQI_TOKEN, iqairKey: process.env.IQAIR_API_KEY, districts, places, nowMs }));
 if (air) {
   await writeJson('data/aqi.json', air);
   if (air.city) await writeJson('data/now.json', { aqi: air.city.aqi, category: air.city.category, timestamp: air.city.timestamp, source: air.city.source });
@@ -53,10 +53,9 @@ if (air) {
   console.log(`  статус: ${JSON.stringify(air.status)}`);
 }
 
-// Новости: раз в час, а при ручном запуске всегда
+// Новости: не чаще раза в час, чем бы ни был запущен шаг
 const prevNews = await readJson('data/news.json');
-const newsDue = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch'
-  || !prevNews
+const newsDue = !prevNews
   || !state.news_run_at
   || nowMs - Date.parse(state.news_run_at) >= NEWS_INTERVAL_MS;
 let news = prevNews;

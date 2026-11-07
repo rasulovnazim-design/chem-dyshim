@@ -9,6 +9,7 @@ import { SourceError } from '../scripts/lib/http.mjs';
 import { fetchWaqi, stationTimeIso, toPoint } from '../scripts/lib/waqi.mjs';
 import { parseCurrent, parseHourly } from '../scripts/lib/openmeteo.mjs';
 
+const noSensors = async () => { throw new SourceError('нет работающих датчиков'); };
 const { districts } = JSON.parse(readFileSync('config/districts.json', 'utf8'));
 const { places } = JSON.parse(readFileSync('config/neighbourhoods.json', 'utf8'));
 const NOW = Date.parse('2026-11-05T04:00:00Z');
@@ -108,10 +109,12 @@ test('WAQI: понятные ошибки неверного токена и к�
 
 test('токен никогда не попадает в публичный статус', async () => {
   const deps = {
+    fetchSensorCommunity: noSensors,
+    fetchIqair: async () => { throw new Error('https://x/?key=SECRET'); },
     fetchWaqi: async () => { throw new SourceError('HTTP 500'); },
     fetchOpenMeteo: async () => { throw new Error('https://x/?token=SECRET'); },
   };
-  const out = await updateAir({ prev: null, token: 'SECRET', districts, places, nowMs: NOW, deps });
+  const out = await updateAir({ prev: null, token: 'SECRET', iqairKey: 'SECRET', districts, places, nowMs: NOW, deps });
   assert.ok(!JSON.stringify(out).includes('SECRET'));
   assert.equal(out.status.waqi, 'ошибка: HTTP 500');
   assert.equal(out.status.open_meteo, 'ошибка: внутренняя ошибка');
@@ -140,7 +143,7 @@ const meteoResult = (aqi = 80) => ({
 });
 
 test('нет токена: работает резерв, районы не сравниваются', async () => {
-  const out = await updateAir({ prev: null, token: '', districts, places, nowMs: NOW, deps: { fetchOpenMeteo: async () => meteoResult() } });
+  const out = await updateAir({ prev: null, token: '', districts, places, nowMs: NOW, deps: { fetchSensorCommunity: noSensors, fetchOpenMeteo: async () => meteoResult() } });
   assert.equal(out.source, 'open-meteo');
   assert.equal(out.status.waqi, 'нет токена');
   assert.equal(out.districts_comparable, false);
@@ -151,14 +154,14 @@ test('нет токена: работает резерв, районы не ср
 
 test('сбой WAQI переключает на резерв, сбой обоих сохраняет прошлые данные', async () => {
   const fail = async () => { throw new SourceError('HTTP 500'); };
-  const first = await updateAir({ prev: null, token: 't', districts, places, nowMs: NOW, deps: { fetchWaqi: fail, fetchOpenMeteo: async () => meteoResult() } });
+  const first = await updateAir({ prev: null, token: 't', districts, places, nowMs: NOW, deps: { fetchSensorCommunity: noSensors, fetchWaqi: fail, fetchOpenMeteo: async () => meteoResult() } });
   assert.equal(first.source, 'open-meteo');
   assert.match(first.status.waqi, /^ошибка/);
-  const second = await updateAir({ prev: first, token: 't', districts, places, nowMs: NOW + 1800e3, deps: { fetchWaqi: fail, fetchOpenMeteo: fail } });
+  const second = await updateAir({ prev: first, token: 't', districts, places, nowMs: NOW + 1800e3, deps: { fetchSensorCommunity: noSensors, fetchWaqi: fail, fetchOpenMeteo: fail } });
   assert.equal(second.city.aqi, 80);
   assert.equal(second.generated_at, first.generated_at);
   assert.equal(second.last_attempt_at, new Date(NOW + 1800e3).toISOString());
-  const none = await updateAir({ prev: null, token: '', districts, places, nowMs: NOW, deps: { fetchOpenMeteo: fail } });
+  const none = await updateAir({ prev: null, token: '', districts, places, nowMs: NOW, deps: { fetchSensorCommunity: noSensors, fetchOpenMeteo: fail } });
   assert.equal(none.city, null);
 });
 
@@ -166,7 +169,7 @@ test('датчики считаются сравнимыми, если есть 
   const pt = (id, district, aqi) => ({ id, district, neighbourhood: id, aqi, pm25: 1, pm10: 1, timestamp: new Date(NOW).toISOString(), source: 'waqi' });
   const out = await updateAir({
     prev: null, token: 't', districts, places, nowMs: NOW,
-    deps: { fetchWaqi: async () => ({ points: [pt('a', 'leninsky', 100), pt('b', 'oktyabrsky', 200)], attributions: [] }), fetchOpenMeteo: async () => meteoResult(60) },
+    deps: { fetchSensorCommunity: noSensors, fetchWaqi: async () => ({ points: [pt('a', 'leninsky', 100), pt('b', 'oktyabrsky', 200)], attributions: [] }), fetchOpenMeteo: async () => meteoResult(60) },
   });
   assert.equal(out.source, 'waqi');
   assert.equal(out.districts_comparable, true);
